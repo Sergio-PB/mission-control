@@ -2,10 +2,13 @@
 
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { remarkFileLinks } from '@/lib/remark-file-links'
 
 interface MarkdownRendererProps {
   content: string
   preview?: boolean
+  /** Linkify workspace-relative file paths to the memory browser. */
+  linkifyFilePaths?: boolean
 }
 
 function getPreviewContent(content: string): string {
@@ -14,7 +17,7 @@ function getPreviewContent(content: string): string {
   return `${firstParagraph.slice(0, 240)}...`
 }
 
-export function MarkdownRenderer({ content, preview = false }: MarkdownRendererProps) {
+export function MarkdownRenderer({ content, preview = false, linkifyFilePaths = false }: MarkdownRendererProps) {
   if (!content?.trim()) return null
 
   const markdownContent = preview ? getPreviewContent(content) : content
@@ -22,7 +25,7 @@ export function MarkdownRenderer({ content, preview = false }: MarkdownRendererP
   return (
     <div className={`prose prose-invert max-w-none ${preview ? 'text-xs' : 'text-sm'}`}>
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
+        remarkPlugins={linkifyFilePaths ? [remarkGfm, remarkFileLinks] : [remarkGfm]}
         skipHtml
         components={{
           h1: ({ children }) => <h1 className={`${preview ? 'text-sm' : 'text-xl'} font-semibold mb-2`}>{children}</h1>,
