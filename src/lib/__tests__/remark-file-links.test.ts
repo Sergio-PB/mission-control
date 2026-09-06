@@ -153,10 +153,4 @@ describe('transformFileLinks', () => {
     expect(link.url).toBe('https://example.com')
     expect(link.children![0].type).toBe('text')
   })
-
-  it('honours a custom base path', () => {
-    const tree = { type: 'root', children: [paragraph({ type: 'text', value: 'see a/b.md' })] }
-    transformFileLinks(tree as never, { basePath: '/files' })
-    expect(tree.children[0].children![1]).toMatchObject({ type: 'link', url: '/files?path=a%2Fb.md' })
-  })
 })

@@ -13,11 +13,6 @@ import { visit } from 'unist-util-visit'
 import type { Link, Parent, PhrasingContent, Root } from 'mdast'
 import type { Plugin } from 'unified'
 
-export interface RemarkFileLinksOptions {
-  /** Base path of the file viewer route. Defaults to `/memory`. */
-  basePath?: string
-}
-
 const PATH_SEGMENT = '[\\w@~+.-]+'
 const FULL_PATH_RE = new RegExp(`^(?:${PATH_SEGMENT}/)+${PATH_SEGMENT}\\.[A-Za-z0-9]{1,16}$`)
 // Lookbehind blocks matches glued to URLs (after `:` or `/`) or larger tokens.
@@ -56,16 +51,14 @@ export function splitFilePathTokens(text: string): FilePathToken[] {
   return tokens
 }
 
-function fileUrl(basePath: string, path: string): string {
-  return `${basePath}?path=${encodeURIComponent(path)}`
+function fileUrl(path: string): string {
+  return `/memory?path=${encodeURIComponent(path)}`
 }
 
 // Node types whose contents must never be linkified.
 const SKIP_PARENT_TYPES = new Set(['link', 'linkReference', 'image', 'imageReference', 'definition'])
 
-export function transformFileLinks(tree: Root, options?: RemarkFileLinksOptions): void {
-  const basePath = options?.basePath ?? '/memory'
-
+export function transformFileLinks(tree: Root): void {
   visit(tree, (node, index, parent: Parent | undefined) => {
     if (!parent || index == null || SKIP_PARENT_TYPES.has(parent.type)) return
 
@@ -77,7 +70,7 @@ export function transformFileLinks(tree: Root, options?: RemarkFileLinksOptions)
           ? { type: 'text', value: token.value }
           : ({
               type: 'link',
-              url: fileUrl(basePath, token.value),
+              url: fileUrl(token.value),
               children: [{ type: 'text', value: token.value }],
             } as Link),
       )
@@ -92,7 +85,7 @@ export function transformFileLinks(tree: Root, options?: RemarkFileLinksOptions)
       if (!isFilePathToken(value)) return
       const link = {
         type: 'link',
-        url: fileUrl(basePath, value.trim()),
+        url: fileUrl(value.trim()),
         children: [node],
       } as unknown as Link
       parent.children.splice(index, 1, link)
@@ -101,6 +94,6 @@ export function transformFileLinks(tree: Root, options?: RemarkFileLinksOptions)
   })
 }
 
-export const remarkFileLinks: Plugin<[RemarkFileLinksOptions?], Root> = (options) => {
-  return (tree) => transformFileLinks(tree, options)
+export const remarkFileLinks: Plugin<[], Root> = () => {
+  return (tree) => transformFileLinks(tree)
 }

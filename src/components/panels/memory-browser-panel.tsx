@@ -192,16 +192,6 @@ export function MemoryBrowserPanel() {
     })
   }, [memoryFiles, fileFilter])
 
-  // Reflect the selected file in the URL so the view is shareable
-  // (and so callers can deep-link via `/memory?path=<relative-path>`).
-  const syncPathToUrl = (filePath: string | null) => {
-    if (typeof window === 'undefined') return
-    const url = new URL(window.location.href)
-    if (filePath) url.searchParams.set('path', filePath)
-    else url.searchParams.delete('path')
-    window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`)
-  }
-
   const loadFileContent = async (filePath: string) => {
     setIsLoading(true)
     setLoadError(null)
@@ -209,7 +199,6 @@ export function MemoryBrowserPanel() {
       const data = await apiFetch<{ content?: string; wikiLinks?: unknown[] }>(`/api/memory?action=content&path=${encodeURIComponent(filePath)}`)
       if (data.content !== undefined) {
         setSelectedMemoryFile(filePath)
-        syncPathToUrl(filePath)
         setMemoryContent(data.content)
         setIsEditing(false)
         setEditedContent('')
@@ -242,8 +231,7 @@ export function MemoryBrowserPanel() {
     }
   }
 
-  // Deep-link support: `/memory?path=<relative-path>` opens a file directly
-  // and every selection is reflected back into the URL so it stays shareable.
+  // Deep-link support: `/memory?path=<relative-path>` opens a file directly.
   const deepLinkHandled = useRef(false)
   useEffect(() => {
     if (deepLinkHandled.current || typeof window === 'undefined') return
@@ -643,7 +631,7 @@ export function MemoryBrowserPanel() {
                           <button onClick={() => { setIsEditing(false); setEditedContent('') }} className="px-2 py-0.5 text-[11px] font-mono text-muted-foreground hover:text-foreground rounded hover:bg-[hsl(var(--surface-2))] transition-colors">{t('cancel')}</button>
                         </>
                       )}
-                      <button onClick={() => { setSelectedMemoryFile(''); setMemoryContent(''); setMemoryFileLinks(null); setIsEditing(false); setEditedContent(''); setSchemaWarnings([]); setLinksOpen(false); setLoadError(null); syncPathToUrl(null) }} className="px-1.5 py-0.5 text-[11px] font-mono text-muted-foreground/40 hover:text-muted-foreground rounded hover:bg-[hsl(var(--surface-2))] transition-colors">x</button>
+                      <button onClick={() => { setSelectedMemoryFile(''); setMemoryContent(''); setMemoryFileLinks(null); setIsEditing(false); setEditedContent(''); setSchemaWarnings([]); setLinksOpen(false); setLoadError(null) }} className="px-1.5 py-0.5 text-[11px] font-mono text-muted-foreground/40 hover:text-muted-foreground rounded hover:bg-[hsl(var(--surface-2))] transition-colors">x</button>
                     </div>
                   </div>
                 )}

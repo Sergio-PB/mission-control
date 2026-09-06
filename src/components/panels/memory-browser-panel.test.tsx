@@ -73,13 +73,4 @@ describe('MemoryBrowserPanel deep links', () => {
     await screen.findByText('x.md')
     expect(apiFetchMock.mock.calls.some(([url]) => String(url).includes('action=content'))).toBe(false)
   })
-
-  it('reflects the selected file in the URL when a tree file is clicked', async () => {
-    render(<MemoryBrowserPanel />)
-    const fileButton = await screen.findByText('x.md')
-    fileButton.click()
-    expect(await screen.findByText(/Hello world/)).toBeInTheDocument()
-    expect(window.location.pathname).toBe('/memory')
-    expect(window.location.search).toBe('?path=docs%2Fplans%2Fx.md')
-  })
 })

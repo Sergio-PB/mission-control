@@ -16,10 +16,6 @@ type ExistsState = 'unknown' | 'exists' | 'missing'
 // Module-level cache so repeated mentions of the same path probe once.
 const existsCache = new Map<string, Promise<boolean>>()
 
-export function __resetFileExistsCache(): void {
-  existsCache.clear()
-}
-
 function probeExists(path: string): Promise<boolean> {
   let pending = existsCache.get(path)
   if (!pending) {

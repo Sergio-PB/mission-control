@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
-import { FilePathLink, __resetFileExistsCache } from './file-path-link'
+import { FilePathLink } from './file-path-link'
 
 const apiFetchMock = vi.fn()
 
@@ -9,16 +9,17 @@ vi.mock('@/lib/api-client', () => ({
 }))
 
 describe('FilePathLink', () => {
+  // Note: the module-level existence cache persists across tests, so each
+  // test uses a distinct path.
   beforeEach(() => {
     vi.clearAllMocks()
-    __resetFileExistsCache()
   })
 
   it('renders a normal link while the existence probe is in flight', () => {
     apiFetchMock.mockReturnValue(new Promise(() => {}))
-    render(<FilePathLink path="docs/plans/real.md" href="/memory?path=docs%2Fplans%2Freal.md" />)
-    const link = screen.getByRole('link', { name: 'docs/plans/real.md' })
-    expect(link).toHaveAttribute('href', '/memory?path=docs%2Fplans%2Freal.md')
+    render(<FilePathLink path="docs/plans/pending.md" href="/memory?path=docs%2Fplans%2Fpending.md" />)
+    const link = screen.getByRole('link', { name: 'docs/plans/pending.md' })
+    expect(link).toHaveAttribute('href', '/memory?path=docs%2Fplans%2Fpending.md')
     expect(link).not.toHaveAttribute('data-file-missing')
   })
 
@@ -60,8 +61,8 @@ describe('FilePathLink', () => {
 
   it('leaves the link unmarked when the probe fails', async () => {
     apiFetchMock.mockRejectedValue(new Error('boom'))
-    render(<FilePathLink path="docs/plans/real.md" href="/memory?path=docs%2Fplans%2Freal.md" />)
-    const link = screen.getByRole('link', { name: 'docs/plans/real.md' })
+    render(<FilePathLink path="docs/plans/flaky.md" href="/memory?path=docs%2Fplans%2Fflaky.md" />)
+    const link = screen.getByRole('link', { name: 'docs/plans/flaky.md' })
     await waitFor(() => expect(apiFetchMock).toHaveBeenCalledTimes(1))
     expect(link).not.toHaveAttribute('data-file-missing')
   })
