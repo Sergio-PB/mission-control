@@ -145,6 +145,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ tree })
     }
 
+    if (action === 'exists' && path) {
+      // Lightweight existence probe (no content transfer) so clients can
+      // distinguish real file links from planned/non-existent paths.
+      if (!isPathAllowed(path)) {
+        return NextResponse.json({ error: 'Path not allowed' }, { status: 403 })
+      }
+      if (!memoryPath || !existsSync(memoryPath)) {
+        return NextResponse.json({ error: 'Memory directory not configured' }, { status: 500 })
+      }
+      const canonicalPath = canonicalizeMemoryRelativePath(path)
+      const fullPath = await resolveSafeMemoryPath(memoryPath, canonicalPath)
+      const stats = await stat(fullPath).catch(() => null)
+      return NextResponse.json({ path: canonicalPath, exists: Boolean(stats?.isFile()) })
+    }
+
     if (action === 'content' && path) {
       // Return file content
       if (!isPathAllowed(path)) {
